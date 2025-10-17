@@ -1,3 +1,5 @@
+.gitignore
 .env
 notebook_explanation.md
 tmdb_project_prompt.txt
+TMDB_Movie_Data_Analysis.ipynb
