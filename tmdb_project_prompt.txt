@@ -1,0 +1,88 @@
+Create and run a Jupyter Notebook named "TMDB_Movie_Data_Analysis.ipynb" that implements the project described in the uploaded file "Module 2.pdf". The notebook must be runnable end-to-end and show outputs for each step. Use Python 3, pandas, requests, matplotlib, and optionally seaborn (but do not require seaborn). Use an environment variable "TMDB_API_KEY" (or ask for API_KEY if missing). Follow these exact sections and create the corresponding notebook cells:
+
+1. Title cell (Markdown): project title and brief description.
+
+2. Setup cell (Code):
+   - Import libraries: os, requests, json, pandas as pd, numpy as np, matplotlib.pyplot as plt
+   - Set pandas display options for readability.
+   - Read MOVIE_IDS list from the assignment: [0, 299534, 19995, 140607, 299536, 597, 135397, 420818, 24428, 168259, 99861, 284054, 12445, 181808, 330457, 351286, 109445, 321612, 260513]
+   - Load API_KEY from `os.environ.get("TMDB_API_KEY")`. If not found, set `API_KEY = "<PUT_YOUR_KEY_HERE>"` and print a warning.
+
+3. Fetching cell(s) (Code + small Markdown):
+   - For each movie_id, call TMDb "movie/{movie_id}" endpoint: `https://api.themoviedb.org/3/movie/{id}?api_key={API_KEY}&append_to_response=credits`.
+   - Collect JSON responses in a list.
+   - Convert to DataFrame (one row per movie) with top-level keys flattened where sensible.
+   - Display head() and a small DataFrame info() output.
+
+4. Data cleaning / preprocessing section (Markdown): describe cleaning goals.
+
+5. Cleaning code cells (multiple):
+   - Drop irrelevant columns: ['adult', 'imdb_id', 'original_title', 'video', 'homepage'] if present.
+   - Extract:
+     - `belongs_to_collection` → `collection_name` (string or NaN)
+     - `genres` → `genres` as pipe-separated string (e.g. "Action|Sci-Fi")
+     - `production_countries` → `production_countries` pipe-separated
+     - `production_companies` → `production_companies` pipe-separated
+     - `spoken_languages` → pipe-separated language codes or names
+   - From `credits` extract `cast` (first N members as list/string), `cast_size`, `director` (from crew job == 'Director'), `crew_size`.
+   - Convert numeric fields: 'budget', 'revenue', 'popularity', 'id' → numeric (coerce errors to NaN).
+   - Convert 'release_date' → datetime (coerce errors).
+   - Replace budgets/revenues/runtime = 0 with NaN and create `budget_musd` and `revenue_musd` as millions (divide by 1_000_000).
+   - Replace placeholder text like 'No Data' or '' with NaN in overview/tagline.
+   - Drop duplicates and rows missing either `id` or `title`.
+   - Keep only rows with at least 10 non-NaN columns.
+   - Filter to `status == 'Released'` if `status` present, then drop `status`.
+   - Reorder columns per assignment:
+     ['id', 'title', 'tagline', 'release_date', 'genres', 'belongs_to_collection', 'original_language', 'budget_musd', 'revenue_musd', 'production_companies', 'production_countries', 'vote_count', 'vote_average', 'popularity', 'runtime', 'overview', 'spoken_languages', 'poster_path', 'cast', 'cast_size', 'director', 'crew_size']
+
+   - Reset index and show DataFrame.head() and DataFrame.info().
+
+6. KPI implementation & helper functions (Markdown): short explanation.
+
+7. KPI code cell(s):
+   - UDF `rank_movies(df, metric, top_n=5, ascending=False, filter_cond=None)` that returns top_n rows sorted by metric with optional filter.
+   - Compute and display:
+     - Highest Revenue
+     - Highest Budget
+     - Highest Profit (revenue_musd - budget_musd)
+     - Lowest Profit
+     - Highest ROI (revenue_musd / budget_musd) where budget_musd >= 10
+     - Lowest ROI (same filter)
+     - Most Voted Movies (vote_count)
+     - Highest Rated (vote_average, vote_count >= 10)
+     - Lowest Rated (vote_average, vote_count >= 10)
+     - Most Popular (popularity)
+   - Print each ranking as a neat DataFrame (include columns: id, title, metric_value).
+
+8. Advanced filtering & search queries (Code):
+   - Search 1: Best-rated Science Fiction Action movies starring Bruce Willis.
+   - Search 2: Movies starring Uma Thurman directed by Quentin Tarantino, sorted by runtime ascending.
+
+9. Franchise vs standalone analysis (Code):
+   - Create a column `is_franchise` (`belongs_to_collection` not null).
+   - Group by `is_franchise` and compute mean revenue_musd, median ROI, mean budget_musd, mean popularity, mean rating. Display results.
+
+10. Most successful franchises and directors (Code):
+    - Franchises: group by `collection_name`, compute count, total budget, mean budget, total revenue, mean revenue, mean rating. Sort by total revenue desc and show top 10.
+    - Directors: group by `director`, compute number of movies, total revenue, mean rating. Sort by total revenue desc and show top 10.
+
+11. Visualizations (Code + Markdown):
+    - Revenue vs Budget scatter.
+    - ROI distribution by genre.
+    - Popularity vs Rating scatter.
+    - Yearly trends.
+    - Franchise vs Standalone comparison bar chart.
+
+12. Final conclusions (Markdown): summary cell that prints top insights found.
+
+13. Save cleaned CSV `tmdb_cleaned.csv` and the notebook.
+
+Requirements:
+- Each code cell must display results (DataFrame.head(), print statements, or matplotlib plots).
+- Add helpful comments in code.
+- Handle missing API key gracefully and show instructions to set TMDB_API_KEY.
+- If any API call fails for an ID, log the ID and continue.
+
+After creating the notebook, run all cells and return:
+- A brief textual summary of outputs (top 3 findings).
+- Attach the generated notebook file and cleaned CSV.
